@@ -1,7 +1,7 @@
 # CloudHoney — GCP-Based Honeypot & Security Event Monitoring Platform
 **CIS 4355 – Cloud Computing | Spring 2026**  
 **Faculty:** Dr. Parra  
-**Team:** Moses (Project Leader) | TBD (Developer) | TBD (Scribe)
+**Team:** Moses (Project Leader) | Marissa Turner (Developer) | Juliana Garza (Scribe)
 
 ---
 
