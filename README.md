@@ -151,10 +151,12 @@ A web dashboard built with **Cloud Monitoring** (or a custom **Cloud Run** app) 
 
 ## 🔗 Related Resources
 
-- [Project Wiki]([cloudhoney/wiki](https://github.com/mwchavez/CC_S2026_Project_MC_MT_JG.wiki.git)) — Full technical report, architecture decisions, and results
-- [GitHub Project Board]([../../projects](https://github.com/users/mwchavez/projects/7)) — Milestone tracking and task assignments
-- [CloudHoney Proposal]([./docs/CloudHoney_Proposal.docx](https://github.com/mwchavez/CC_S2026_Project_MC_MT_JG/blob/8aa2874cd94095a8468c22769d7dae9bffc8093d/cloudhoney/docs/CloudHoney_Proposal%20(1).docx)) — Original project proposal document
-- [Companion Project: Leak Detection System]([../practicum-leak-detection/](https://github.com/mwchavez/cc-practicum_S2026)) — AWS-based IoT pipeline (CSEC 4390)
+## Related Resources
+
+- [Project Wiki](https://github.com/mwchavez/CC_S2026_Project_MC_MT_JG/wiki) — Full technical report, architecture decisions, and results
+- [GitHub Project Board](https://github.com/users/mwchavez/projects/7) — Milestone tracking and task assignments
+- [CloudHoney Proposal](./docs/CloudHoney_Proposal%20(1).docx) — Original project proposal document
+- [Companion Project: Leak Detection System](https://github.com/mwchavez/cc-practicum_S2026) — AWS-based IoT pipeline (CSEC 4390)
 
 ---
 
