@@ -98,16 +98,14 @@ A web dashboard built with **Cloud Monitoring** (or a custom **Cloud Run** app) 
 
 ## 📁 Repository Structure
 
----
-
+```
 /honeypot        → Flask honeypot application
 /traffic-gen     → Python attack traffic simulator
 /functions       → Cloud Functions source code
 /dashboard       → Visualization dashboard (Cloud Run)
 /infra           → GCP setup scripts and configurations
 /docs            → Architecture docs and references
-
----
+```
 
 ## ✅ Current Progress
 
