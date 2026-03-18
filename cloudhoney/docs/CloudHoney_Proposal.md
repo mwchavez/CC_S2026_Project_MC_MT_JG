@@ -1,7 +1,7 @@
 # CloudHoney: A GCP-Based Financial Sector Honeypot & Security Event Monitoring Platform
 
 **CIS 4355 — Cloud Computing | Spring 2026**  
-**Moses (Project Leader) | TBD (Developer) | TBD (Scribe)**
+**Moses (Project Leader) | Marissa Turner (Developer) | Juliana Garza (Scribe)**
 
 ---
 
