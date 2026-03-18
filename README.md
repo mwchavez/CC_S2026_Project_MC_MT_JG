@@ -98,43 +98,14 @@ A web dashboard built with **Cloud Monitoring** (or a custom **Cloud Run** app) 
 
 ## 📁 Repository Structure
 
-```
-cloudhoney/
-├── traffic-generator/
-│   ├── simulator.py           # Main traffic simulation script
-│   ├── payloads/
-│   │   ├── port_scan.py       # Port scan simulation module
-│   │   ├── brute_force.py     # Brute force login sequence module
-│   │   └── sql_injection.py   # SQL injection payload module
-│   └── requirements.txt
-│
-├── honeypot/
-│   ├── app.py                 # Flask honeypot application
-│   ├── templates/             # Fake login/admin HTML pages
-│   └── requirements.txt
-│
-├── cloud-functions/
-│   ├── event_processor/
-│   │   ├── main.py            # Cloud Function: detection rules & alert logic
-│   │   └── requirements.txt
-│   └── deploy.sh              # Deployment script
-│
-├── infrastructure/
-│   ├── compute-engine/
-│   │   └── startup-script.sh  # VM provisioning and Flask app setup
-│   ├── pubsub/
-│   │   └── topics.json        # Pub/Sub topic configuration
-│   └── iam/
-│       └── roles.json         # IAM role and permission definitions
-│
-├── dashboard/
-│   └── [dashboard source or Cloud Monitoring config]
-│
-├── docs/
-│   └── architecture.md        # Detailed architecture decision log
-│
-└── README.md
-```
+---
+
+/honeypot        → Flask honeypot application
+/traffic-gen     → Python attack traffic simulator
+/functions       → Cloud Functions source code
+/dashboard       → Visualization dashboard (Cloud Run)
+/infra           → GCP setup scripts and configurations
+/docs            → Architecture docs and references
 
 ---
 
