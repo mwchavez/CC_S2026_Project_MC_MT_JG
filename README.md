@@ -47,19 +47,20 @@ Python Traffic Simulator
                                               (Cloud Monitoring or Cloud Run)
 ```
 
-### GCP Services vs. AWS Equivalents
+## GCP Services (10)
 
-> If you're more familiar with AWS (or have seen the companion leak detection project), this table maps each GCP service to what you may already know:
-
-| Role | GCP Service Used | AWS Equivalent |
-|---|---|---|
-| Honeypot hosting | **Compute Engine (VM)** | EC2 |
-| Log ingestion | **Cloud Logging** | CloudWatch Logs |
-| Object storage | **Cloud Storage (GCS)** | S3 |
-| Serverless processing | **Cloud Functions** | Lambda |
-| Messaging / alerting | **Pub/Sub** | SNS |
-| Dashboard / monitoring | **Cloud Monitoring or Cloud Run** | CloudWatch Dashboards |
-| Access control | **Cloud IAM** | IAM |
+| Role | GCP Service | AWS Equivalent |
+|------|-------------|----------------|
+| Honeypot hosting | Compute Engine | EC2 |
+| Log ingestion | Cloud Logging | CloudWatch Logs |
+| Object storage | Cloud Storage (GCS) | S3 |
+| Serverless processing | Cloud Functions | Lambda |
+| Messaging / alerting | Pub/Sub | SNS |
+| Dashboard hosting | Cloud Run | ECS / App Runner |
+| Real-time data store | Firestore | DynamoDB |
+| Secrets management | Secret Manager | Secrets Manager |
+| Monitoring | Cloud Monitoring | CloudWatch |
+| Access control | Cloud IAM | IAM |
 
 ---
 
