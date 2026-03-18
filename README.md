@@ -11,8 +11,6 @@
 
 > **In plain terms:** a honeypot is a fake system designed to look like a real target (a login page, an admin panel, a database). Attackers waste time on it while we silently log everything they do. CloudHoney builds that trap in the cloud and turns the captured data into actionable security alerts.
 
-The project also serves as a **cross-platform study** in cloud architecture. Its pipeline structure intentionally mirrors the AWS-based IoT pipeline built in a companion senior design project — demonstrating that well-designed cloud architectures are transferable across providers and problem domains.
-
 ---
 
 ## 🏗️ System Architecture
