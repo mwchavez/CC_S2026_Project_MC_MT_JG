@@ -5,8 +5,8 @@
 | Name | Role | GitHub |
 |------|------|--------|
 | Moses Chavez | Project Leader | [@mwchavez](https://github.com/mwchavez) |
-| Marissa Turner | Developer | TBD |
-| Juliana Garza | Scribe | TBD |
+| Marissa Turner | Developer | [@marilturner](https://github.com/marilturner)|
+| Juliana Garza | Scribe | [@julianaagarza](https://github.com/julianaagarza) |
 
 ---
 
