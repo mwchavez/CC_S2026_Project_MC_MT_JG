@@ -131,7 +131,7 @@ A containerized web dashboard deployed on **Cloud Run** reads classified event d
 - [x] Project proposal completed and approved
 - [x] GitHub repository initialized with milestone structure
 - [x] GitHub Project board with issues across 5 milestones created
-- [ ] GCP project, VPC Network, and IAM setup
+- [x] GCP project, VPC Network, and IAM setup
 - [ ] Compute Engine VM provisioned inside VPC
 - [ ] Flask honeypot application deployed (banking endpoints)
 - [ ] Cloud Logging integration
