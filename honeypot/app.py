@@ -1,13 +1,28 @@
 """
 CloudHoney — Honeypot Flask Application
+========================================
+A lightweight decoy financial institution portal that silently logs
+every incoming request as structured JSON and forwards it to GCP
+Cloud Logging.
 
-A lightweight decoy web application that exposes fake login, admin,
-and database query endpoints. Every incoming request is captured as
-structured JSON and forwarded to GCP Cloud Logging when running in
-the cloud, or printed to the terminal when running locally.
+Endpoints:
+    /login    — Fake online banking portal login page
+    /transfer — Fake wire transfer submission interface
+    /payment  — Fake payment API endpoint
+    /admin    — Fake back-office administrative panel
+    /account  — Fake customer account lookup interface
+    /query    — Fake database query interface (bonus SQL injection bait)
 
-This application does NOT perform any real authentication or database
-operations. It exists solely to attract and log simulated attack traffic.
+IMPORTANT:
+    This application NEVER processes, stores, or echoes back any real
+    financial data. All form fields are captured as log entries only.
+    No real authentication or financial operations are performed.
+
+    PCI DSS Requirement 3 Compliance Note:
+    This system does not store sensitive authentication data after
+    authorization because it never performs authorization at all.
+    All captured payloads are treated as honeypot telemetry, not
+    cardholder data.
 """
 
 import json
@@ -15,183 +30,172 @@ import logging
 import os
 from datetime import datetime, timezone
 
-from flask import Flask, request, render_template_string
+from flask import Flask, request, render_template, render_template_string, jsonify
 
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
 
-# When running on the GCP VM, set ENVIRONMENT=production to enable Cloud Logging.
-# Locally, it defaults to "development" and logs to the terminal instead.
-ENVIRONMENT = os.environ.get("ENVIRONMENT", "development")
+# Toggle GCP Cloud Logging integration.  Set to "true" when deployed on
+# Compute Engine with the cloudhoney-app-sa service account attached.
+# When running locally for development, leave as "false" to log to stdout.
+ENABLE_GCP_LOGGING = os.environ.get("ENABLE_GCP_LOGGING", "false").lower() == "true"
 
-app = Flask(__name__)
+# Custom log name used in Cloud Logging — this is what the Log Sink in
+# Issue #5 will filter on to route events to Cloud Storage and Pub/Sub.
+GCP_LOG_NAME = os.environ.get("GCP_LOG_NAME", "cloudhoney-events")
 
 # ---------------------------------------------------------------------------
 # Logging Setup
 # ---------------------------------------------------------------------------
 
-def setup_logging():
-    """
-    Configure logging based on environment.
+app = Flask(__name__)
 
-    In production (on the GCP VM), this uses the google-cloud-logging
-    library to send structured logs directly to GCP Cloud Logging.
-    Think of Cloud Logging as GCP's equivalent of AWS CloudWatch Logs.
+# Silence default Flask/Werkzeug request logs so they don't pollute our
+# structured event stream.
+logging.getLogger("werkzeug").setLevel(logging.WARNING)
 
-    In development (your laptop), it just prints JSON to the terminal
-    so you can see what's happening without needing a GCP connection.
-    """
-    if ENVIRONMENT == "production":
-        import google.cloud.logging
-        client = google.cloud.logging.Client()
-        client.setup_logging()
+# Local structured logger (always active — useful for development)
+logger = logging.getLogger("cloudhoney")
+logger.setLevel(logging.INFO)
 
-    logger = logging.getLogger("cloudhoney")
-    logger.setLevel(logging.INFO)
+_stream_handler = logging.StreamHandler()
+_stream_handler.setFormatter(logging.Formatter("%(message)s"))
+logger.addHandler(_stream_handler)
 
-    # If no handlers exist yet (development mode), add a console handler
-    if not logger.handlers and ENVIRONMENT == "development":
-        handler = logging.StreamHandler()
-        handler.setLevel(logging.INFO)
-        logger.addHandler(handler)
+# GCP Cloud Logging client (conditionally initialized)
+_gcp_logger = None
 
-    return logger
+if ENABLE_GCP_LOGGING:
+    try:
+        from google.cloud import logging as gcp_logging
 
-logger = setup_logging()
+        _gcp_client = gcp_logging.Client()
+        _gcp_logger = _gcp_client.logger(GCP_LOG_NAME)
+        logger.info(
+            json.dumps({
+                "event": "gcp_logging_initialized",
+                "log_name": GCP_LOG_NAME,
+                "message": "GCP Cloud Logging is active."
+            })
+        )
+    except Exception as exc:
+        logger.warning(
+            json.dumps({
+                "event": "gcp_logging_init_failed",
+                "error": str(exc),
+                "message": "Falling back to local logging only."
+            })
+        )
 
 # ---------------------------------------------------------------------------
-# Request Logging (the "hidden camera" that records everything)
+# Core Logging Function
 # ---------------------------------------------------------------------------
 
-def log_request(attack_context=""):
-    """
-    Capture every detail of an incoming request as structured JSON.
+# Security-relevant headers worth capturing for threat analysis.
+# These are used by the Cloud Functions detection rules in Issue #8
+# to identify patterns like rotating user agents during credential
+# stuffing or suspicious origin headers.
+SECURITY_HEADERS = [
+    "User-Agent",
+    "X-Forwarded-For",
+    "X-Real-IP",
+    "Referer",
+    "Origin",
+    "Authorization",
+    "Content-Type",
+    "Accept",
+    "Cookie",
+    "Host",
+]
+
+
+def log_honeypot_event(endpoint_name: str, attack_context: str = "") -> dict:
+    """Capture every detail of the incoming request and emit a structured
+    JSON log entry to both local stdout and GCP Cloud Logging (if enabled).
 
     This is the core function of the honeypot. Every single request
     that hits any endpoint gets recorded with:
-    - timestamp: when it happened (UTC)
-    - source_ip: where it came from
-    - method: GET, POST, etc.
-    - path: which URL they hit (/login, /admin, /query)
-    - user_agent: what tool or browser they claim to be using
-    - payload: whatever data they sent (form fields, query params)
-    - attack_context: our label for what type of activity this looks like
+    - timestamp:       when it happened (UTC, ISO 8601)
+    - source_ip:       where it came from
+    - method:          GET, POST, etc.
+    - path:            which URL they hit (/login, /transfer, /payment, etc.)
+    - endpoint:        our internal label for which decoy they triggered
+    - user_agent:      what tool or browser they claim to be using
+    - payload:         whatever data they sent (form fields, JSON, raw body)
+    - headers:         security-relevant HTTP headers
+    - query_params:    URL query string parameters
+    - attack_context:  our label for what type of activity this looks like
 
     The structured JSON format is critical because downstream services
     (Cloud Functions in Issue #8) will parse these fields to run
     detection rules.
-    """
-    # Get form data if it's a POST, or query parameters if it's a GET
-    if request.method == "POST":
-        payload = request.form.to_dict() or request.get_json(silent=True) or {}
-    else:
-        payload = request.args.to_dict()
 
-    log_entry = {
+    Args:
+        endpoint_name:  Human-readable label for the triggered endpoint
+                        (e.g., "login", "transfer").
+        attack_context: Descriptive label for the suspected attack type
+                        (e.g., "brute_force_attempt", "sql_injection_attempt").
+                        Used for enriching Firestore documents in Issue #8.
+
+    Returns:
+        The structured event dict (useful for unit testing).
+    """
+    # Build the payload — try form data first, then JSON, then raw body.
+    payload = {}
+    if request.form:
+        payload = {k: v for k, v in request.form.items()}
+    elif request.is_json:
+        payload = request.get_json(silent=True) or {}
+    else:
+        raw = request.get_data(as_text=True)
+        if raw:
+            payload = {"raw_body": raw}
+
+    # Capture selected security-relevant headers.
+    captured_headers = {
+        h: request.headers.get(h)
+        for h in SECURITY_HEADERS
+        if request.headers.get(h)
+    }
+
+    event = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "source_ip": request.remote_addr,
         "method": request.method,
         "path": request.path,
+        "endpoint": endpoint_name,
         "user_agent": request.headers.get("User-Agent", "unknown"),
         "payload": payload,
+        "headers": captured_headers,
+        "query_params": dict(request.args) if request.args else {},
         "attack_context": attack_context,
     }
 
-    # Log as a JSON string so it stays structured end-to-end
-    logger.info(json.dumps(log_entry))
+    # --- Emit to local logger (always) ---
+    logger.info(json.dumps(event, default=str))
 
-    return log_entry
+    # --- Emit to GCP Cloud Logging (if enabled) ---
+    if _gcp_logger:
+        try:
+            _gcp_logger.log_struct(
+                event,
+                severity="INFO",
+            )
+        except Exception as exc:
+            logger.error(
+                json.dumps({
+                    "event": "gcp_log_write_failed",
+                    "error": str(exc),
+                })
+            )
+
+    return event
+
 
 # ---------------------------------------------------------------------------
-# HTML Templates (the "fake storefront" that looks real)
+# Fake Database Query Template (inline — bonus endpoint)
 # ---------------------------------------------------------------------------
-# These are intentionally simple but realistic-looking pages.
-# An attacker scanning the internet would see these and think
-# they found an exposed admin panel or login page.
-
-LOGIN_PAGE = """
-<!DOCTYPE html>
-<html>
-<head><title>System Login</title>
-<style>
-    body { font-family: Arial, sans-serif; background: #1a1a2e; color: #eee;
-           display: flex; justify-content: center; align-items: center;
-           min-height: 100vh; margin: 0; }
-    .login-box { background: #16213e; padding: 40px; border-radius: 8px;
-                 width: 320px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-    h2 { text-align: center; color: #0f3460; margin-bottom: 24px; }
-    input { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #0f3460;
-            border-radius: 4px; background: #1a1a2e; color: #eee; box-sizing: border-box; }
-    button { width: 100%; padding: 12px; background: #e94560; color: white;
-             border: none; border-radius: 4px; cursor: pointer; font-size: 14px;
-             margin-top: 12px; }
-    .footer { text-align: center; margin-top: 16px; font-size: 11px; color: #555; }
-</style>
-</head>
-<body>
-    <div class="login-box">
-        <h2>SSH Gateway Login</h2>
-        <form method="POST" action="/login">
-            <input type="text" name="username" placeholder="Username" required>
-            <input type="password" name="password" placeholder="Password" required>
-            <button type="submit">Sign In</button>
-        </form>
-        <div class="footer">Authorized personnel only. All access is logged.</div>
-    </div>
-</body>
-</html>
-"""
-
-ADMIN_PAGE = """
-<!DOCTYPE html>
-<html>
-<head><title>Admin Panel</title>
-<style>
-    body { font-family: Arial, sans-serif; background: #0d1117; color: #c9d1d9; margin: 0; }
-    .navbar { background: #161b22; padding: 12px 24px; border-bottom: 1px solid #30363d; }
-    .navbar h3 { margin: 0; color: #58a6ff; }
-    .content { padding: 24px; }
-    .card { background: #161b22; border: 1px solid #30363d; border-radius: 6px;
-            padding: 20px; margin: 12px 0; }
-    .card h4 { color: #58a6ff; margin-top: 0; }
-    .status { color: #3fb950; }
-    form input, form select { padding: 8px; margin: 4px; background: #0d1117;
-                               border: 1px solid #30363d; color: #c9d1d9; border-radius: 4px; }
-    form button { padding: 8px 16px; background: #238636; color: white;
-                  border: none; border-radius: 4px; cursor: pointer; }
-</style>
-</head>
-<body>
-    <div class="navbar"><h3>CloudHoney Admin Panel</h3></div>
-    <div class="content">
-        <div class="card">
-            <h4>System Status</h4>
-            <p>Server: <span class="status">ONLINE</span></p>
-            <p>Database: <span class="status">CONNECTED</span></p>
-            <p>Last backup: 2026-03-15 02:00 UTC</p>
-        </div>
-        <div class="card">
-            <h4>User Management</h4>
-            <form method="POST" action="/admin">
-                <input type="text" name="action" placeholder="Action (create/delete/modify)">
-                <input type="text" name="target_user" placeholder="Username">
-                <input type="text" name="role" placeholder="Role">
-                <button type="submit">Execute</button>
-            </form>
-        </div>
-        <div class="card">
-            <h4>Server Configuration</h4>
-            <form method="POST" action="/admin">
-                <input type="text" name="config_key" placeholder="Config key">
-                <input type="text" name="config_value" placeholder="Config value">
-                <button type="submit">Update</button>
-            </form>
-        </div>
-    </div>
-</body>
-</html>
-"""
 
 QUERY_PAGE = """
 <!DOCTYPE html>
@@ -229,115 +233,201 @@ Permission denied. This incident has been logged.</div>
 </html>
 """
 
+
 # ---------------------------------------------------------------------------
-# Routes (the decoy endpoints)
+# Health Check (not a honeypot endpoint — used for operational monitoring)
 # ---------------------------------------------------------------------------
 
-@app.route("/")
-def index():
-    """
-    Root endpoint. Redirects scanners toward the login page.
-    Even this visit gets logged — it tells us someone found the server.
-    """
-    log_request(attack_context="reconnaissance")
-    return render_template_string(LOGIN_PAGE)
+@app.route("/health")
+def health():
+    """Simple health check for Cloud Monitoring uptime checks (Issue #11)."""
+    return jsonify({"status": "ok"}), 200
 
+
+# ---------------------------------------------------------------------------
+# Honeypot Endpoints
+# ---------------------------------------------------------------------------
+
+# --- 1. /login — Fake Online Banking Portal ---
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    """
-    Fake login page.
-    GET  = someone is viewing the login form (reconnaissance)
-    POST = someone is submitting credentials (potential brute force)
+    """Simulates an online banking portal login page.
 
-    The page looks like an SSH gateway login. We never actually
-    authenticate anyone — every attempt gets logged and rejected.
+    GET  → Renders a fake bank login form (reconnaissance).
+    POST → Captures submitted credentials and logs the event.
+           Returns a fake 'invalid credentials' response (never authenticates).
     """
     if request.method == "POST":
-        log_request(attack_context="brute_force_attempt")
-        # Always return a fake "invalid credentials" message
-        return render_template_string(LOGIN_PAGE + """
-            <script>alert('Invalid credentials. This attempt has been recorded.');</script>
-        """), 401
+        log_honeypot_event("login", attack_context="brute_force_attempt")
+        return render_template(
+            "login.html",
+            error="Invalid username or password. Please try again.",
+        ), 401
     else:
-        log_request(attack_context="login_page_visit")
-        return render_template_string(LOGIN_PAGE)
+        log_honeypot_event("login", attack_context="login_page_visit")
+        return render_template("login.html")
 
+
+# --- 2. /transfer — Fake Wire Transfer Interface ---
+
+@app.route("/transfer", methods=["GET", "POST"])
+def transfer():
+    """Simulates a wire transfer submission page.
+
+    GET  → Renders a fake wire transfer form (reconnaissance).
+    POST → Captures account numbers, routing numbers, and amounts.
+           Returns a fake 'transfer pending' response.
+    """
+    if request.method == "POST":
+        log_honeypot_event("transfer", attack_context="wire_transfer_probe")
+        return render_template(
+            "transfer.html",
+            message="Transfer submitted. Pending verification.",
+        )
+    else:
+        log_honeypot_event("transfer", attack_context="transfer_page_visit")
+        return render_template("transfer.html")
+
+
+# --- 3. /payment — Fake Payment API Endpoint ---
+
+@app.route("/payment", methods=["GET", "POST"])
+def payment():
+    """Simulates a payment processing API endpoint.
+
+    GET  → Returns API documentation page (decoy/reconnaissance).
+    POST → Captures card data, merchant info, amounts.
+           Returns a fake JSON API response.
+    """
+    if request.method == "POST":
+        log_honeypot_event("payment", attack_context="payment_api_abuse")
+        return jsonify({
+            "status": "processing",
+            "transaction_id": "TXN-FAKE-0000000",
+            "message": "Payment is being processed. Please allow 1-2 business days.",
+        }), 202
+    else:
+        log_honeypot_event("payment", attack_context="payment_page_visit")
+        return render_template("payment.html")
+
+
+# --- 4. /admin — Fake Back-Office Administrative Panel ---
 
 @app.route("/admin", methods=["GET", "POST"])
 def admin():
-    """
-    Fake admin panel.
-    GET  = someone found the admin page (reconnaissance)
-    POST = someone is trying to execute admin actions
+    """Simulates a back-office admin panel.
 
-    This is designed to look like a real management interface.
-    Attackers who find /admin pages often try to exploit them.
+    GET  → Renders a fake admin login form (reconnaissance).
+    POST → Captures admin credentials and logs the event.
+           Returns a fake 'access denied' response.
     """
     if request.method == "POST":
-        log_request(attack_context="admin_exploit_attempt")
-        return render_template_string(ADMIN_PAGE), 403
+        log_honeypot_event("admin", attack_context="admin_exploit_attempt")
+        return render_template(
+            "admin.html",
+            error="Access denied. This incident has been reported.",
+        ), 403
     else:
-        log_request(attack_context="admin_page_visit")
-        return render_template_string(ADMIN_PAGE)
+        log_honeypot_event("admin", attack_context="admin_page_visit")
+        return render_template("admin.html")
 
+
+# --- 5. /account — Fake Customer Account Lookup ---
+
+@app.route("/account", methods=["GET", "POST"])
+def account():
+    """Simulates a customer account lookup interface.
+
+    GET  → Renders an account lookup form (reconnaissance).
+    POST → Captures account ID / SSN-like input and logs the event.
+           Returns a fake 'account not found' response.
+    """
+    if request.method == "POST":
+        log_honeypot_event("account", attack_context="account_takeover_recon")
+        return render_template(
+            "account.html",
+            error="Account not found. Please verify your information.",
+        ), 404
+    else:
+        log_honeypot_event("account", attack_context="account_page_visit")
+        return render_template("account.html")
+
+
+# --- 6. /query — Fake Database Query Interface (Bonus SQL Injection Bait) ---
 
 @app.route("/query", methods=["GET", "POST"])
 def query():
-    """
-    Fake database query interface.
-    GET  = someone found the query page (reconnaissance)
-    POST = someone is submitting a query (potential SQL injection)
+    """Simulates an exposed database query interface.
 
-    This is the juiciest target for attackers — a page that looks
-    like it accepts raw SQL. The Cloud Functions detection rules
-    (Issue #8) will scan these payloads for injection patterns.
+    This is a bonus endpoint not in the original proposal — a page that
+    looks like it accepts raw SQL.  It's the juiciest bait for attackers
+    testing for SQL injection.  Cloud Functions detection rules (Issue #8)
+    will scan these payloads for injection patterns.
+
+    GET  → Shows the fake query interface (reconnaissance).
+    POST → Captures the submitted query string and logs it.
     """
     submitted_query = ""
     if request.method == "POST":
         submitted_query = request.form.get("query", "")
-        log_request(attack_context="sql_injection_attempt")
+        log_honeypot_event("query", attack_context="sql_injection_attempt")
     else:
-        log_request(attack_context="query_page_visit")
+        log_honeypot_event("query", attack_context="query_page_visit")
 
     return render_template_string(QUERY_PAGE, query=submitted_query)
 
 
-# Catch-all for any other paths (attackers often probe random URLs)
+# ---------------------------------------------------------------------------
+# Catch-All Route (logs ANY other path an attacker probes)
+# ---------------------------------------------------------------------------
+
+@app.route("/", defaults={"path": ""})
 @app.route("/<path:path>", methods=["GET", "POST", "PUT", "DELETE"])
 def catch_all(path):
+    """Catches requests to any path not explicitly defined above.
+
+    Attackers running port scans will hit paths like /api, /config,
+    /debug, /.env, /wp-admin, /ssh, etc.  Every one of those requests
+    gets logged.  This is critical for the port scan detection rule
+    in Issue #8 (8+ distinct paths from same IP within 30 seconds).
     """
-    Catch any request to a path we haven't explicitly defined.
-    Attackers running port scans will hit paths like /ssh, /api,
-    /wp-admin, /.env, etc. We want to log all of those too.
-    """
-    log_request(attack_context="path_probe")
-    return json.dumps({"error": "not found"}), 404, {"Content-Type": "application/json"}
+    log_honeypot_event("catch_all", attack_context="path_probe")
+    return render_template("404.html"), 404
 
 
 # ---------------------------------------------------------------------------
-# Run the app
+# Entry Point
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+
     print("=" * 60)
     print("  CloudHoney Honeypot")
-    print(f"  Environment: {ENVIRONMENT}")
-    print(f"  Logging to: {'GCP Cloud Logging' if ENVIRONMENT == 'production' else 'Terminal'}")
+    print(f"  Logging to: {'GCP Cloud Logging' if ENABLE_GCP_LOGGING else 'Terminal (local dev)'}")
+    print(f"  Log name:   {GCP_LOG_NAME}")
     print("=" * 60)
     print()
-    print("  Endpoints:")
-    print("    http://localhost:5000/login  — Fake SSH login")
-    print("    http://localhost:5000/admin  — Fake admin panel")
-    print("    http://localhost:5000/query  — Fake DB query interface")
+    print("  Financial Sector Endpoints:")
+    print(f"    http://localhost:{port}/login     — Fake banking portal login")
+    print(f"    http://localhost:{port}/transfer  — Fake wire transfer form")
+    print(f"    http://localhost:{port}/payment   — Fake payment API")
+    print(f"    http://localhost:{port}/admin     — Fake admin panel")
+    print(f"    http://localhost:{port}/account   — Fake account lookup")
+    print(f"    http://localhost:{port}/query     — Fake DB query interface")
+    print()
+    print("  Utility:")
+    print(f"    http://localhost:{port}/health    — Health check")
+    print(f"    http://localhost:{port}/*         — Catch-all (port scan logging)")
     print()
 
-    # host="0.0.0.0" makes the app accessible from outside the machine,
-    # which is necessary when running on the GCP VM so the traffic
-    # generator can reach it. debug=True gives you auto-reload during
-    # development but should be False in production.
+    # host="0.0.0.0" makes the app accessible from outside the VM
+    # (required for the traffic generator to reach it over the VPC).
+    # debug=False ALWAYS in production — Flask debug mode exposes an
+    # interactive debugger that lets anyone execute arbitrary Python.
     app.run(
         host="0.0.0.0",
-        port=5000,
-        debug=(ENVIRONMENT == "development"),
+        port=port,
+        debug=os.environ.get("FLASK_DEBUG", "false").lower() == "true",
     )

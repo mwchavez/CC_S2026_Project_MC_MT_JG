@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Payment Services — Pinnacle Federal Bank{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>Payment Services API</h2>
+    <p class="subtitle">Submit a payment transaction for processing.</p>
+
+    {% if message %}
+    <div class="alert alert-info">{{ message }}</div>
+    {% endif %}
+
+    <form method="POST" action="/payment">
+        <div class="form-group">
+            <label for="card_number">Card Number</label>
+            <input type="text" id="card_number" name="card_number" placeholder="XXXX-XXXX-XXXX-XXXX" autocomplete="off">
+        </div>
+        <div class="form-group">
+            <label for="expiry">Expiry (MM/YY)</label>
+            <input type="text" id="expiry" name="expiry" placeholder="MM/YY">
+        </div>
+        <div class="form-group">
+            <label for="cvv">CVV</label>
+            <input type="text" id="cvv" name="cvv" placeholder="XXX" autocomplete="off">
+        </div>
+        <div class="form-group">
+            <label for="merchant_id">Merchant ID</label>
+            <input type="text" id="merchant_id" name="merchant_id" placeholder="Merchant identifier">
+        </div>
+        <div class="form-group">
+            <label for="amount">Amount (USD)</label>
+            <input type="text" id="amount" name="amount" placeholder="0.00">
+        </div>
+        <button type="submit" class="btn-primary">Process Payment</button>
+    </form>
+
+    <div class="secure-badge">
+        <span class="lock">&#x1F512;</span>
+        PCI DSS compliant transaction processing.
+    </div>
+</div>
+{% endblock %}

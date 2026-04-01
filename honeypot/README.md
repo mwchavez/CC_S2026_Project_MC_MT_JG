@@ -1,66 +1,118 @@
-# Honeypot Flask Application
+# CloudHoney — Honeypot Flask Application
 
-Lightweight Flask web application deployed on GCP Compute Engine inside a custom VPC Network. Acts as a decoy financial institution portal — simulating the internet-facing infrastructure of a bank to lure and log simulated attack traffic.
+> **Decoy financial institution portal** that silently logs every incoming request as structured JSON.  
+> No real authentication or financial operations are performed.
+
+---
+
+## Quick Start (Local Development)
+
+```bash
+# 1. Create a virtual environment (recommended)
+python3 -m venv venv
+source venv/bin/activate        # Linux/Mac
+# venv\Scripts\activate         # Windows
+
+# 2. Install dependencies
+pip install -r requirements.txt
+
+# 3. Run the app
+python app.py
+```
+
+The app starts on **http://localhost:5000**.  Every request to any endpoint produces a structured JSON log entry in the terminal.
 
 ---
 
 ## Endpoints
 
-| Route | Method | Purpose |
-|---|---|---|
-| `/login` | GET/POST | Fake online banking login portal |
-| `/transfer` | GET/POST | Fake wire transfer submission interface |
-| `/payment` | GET/POST | Fake payment API endpoint |
-| `/admin` | GET/POST | Fake back-office administrative panel |
-| `/account` | GET/POST | Fake customer account lookup interface |
-
-> None of these endpoints perform any real authentication or financial operations. They exist solely to log attacker behavior.
-
----
-
-## Logging
-
-Every incoming request is captured as structured JSON and forwarded to GCP Cloud Logging:
-
-- Timestamp
-- Source IP address
-- HTTP method and path
-- User-Agent header
-- Full request payload/body
-
-Log entries use the custom log name `cloudhoney-events` so they can be filtered and routed downstream by the Cloud Logging sink.
+| Path        | Method    | Description                                            |
+|-------------|-----------|--------------------------------------------------------|
+| `/login`    | GET/POST  | Fake online banking login portal                       |
+| `/transfer` | GET/POST  | Fake wire transfer submission form                     |
+| `/payment`  | GET/POST  | Fake payment processing API endpoint                   |
+| `/admin`    | GET/POST  | Fake back-office administrative panel                  |
+| `/account`  | GET/POST  | Fake customer account lookup interface                 |
+| `/query`    | GET/POST  | Fake database query interface (bonus SQL injection bait) |
+| `/health`   | GET       | Operational health check (not a honeypot target)       |
+| `/*`        | GET       | Catch-all — logs any other probed path (404)           |
 
 ---
 
-## Detection Targets
+## Environment Variables
 
-This honeypot is designed to surface the following financial sector attack patterns:
-
-- **Credential stuffing** — repeated POST attempts to `/login` with varied username/password pairs
-- **Wire fraud probing** — requests to `/transfer` with manipulated routing or account number patterns
-- **Payment API abuse** — malformed or injected payloads sent to `/payment`
-- **Account takeover recon** — repeated probing of `/account` for session or token weaknesses
-- **Port scanning** — rapid requests across all exposed paths from a single IP
+| Variable             | Default              | Description                                                 |
+|----------------------|----------------------|-------------------------------------------------------------|
+| `ENABLE_GCP_LOGGING` | `false`              | Set to `true` on Compute Engine to forward logs to GCP      |
+| `GCP_LOG_NAME`       | `cloudhoney-events`  | Custom log name used in Cloud Logging (matches Log Sink)    |
+| `PORT`               | `5000`               | Port the Flask app listens on                               |
+| `FLASK_DEBUG`        | `false`              | Enable Flask debug mode (local dev only — never in prod)    |
 
 ---
 
-## Local Development
+## Log Format
 
-```bash
-pip install -r requirements.txt
-python app.py
+Every request produces a JSON entry like this:
+
+```json
+{
+  "timestamp": "2026-02-10T14:32:05.123456+00:00",
+  "source_ip": "10.0.1.50",
+  "method": "POST",
+  "path": "/login",
+  "endpoint": "login",
+  "user_agent": "Mozilla/5.0 (compatible; stuffing-tool/1.0)",
+  "payload": {
+    "username": "jsmith",
+    "password": "Summer2024!"
+  },
+  "headers": {
+    "User-Agent": "Mozilla/5.0 (compatible; stuffing-tool/1.0)",
+    "Content-Type": "application/x-www-form-urlencoded"
+  },
+  "query_params": {},
+  "attack_context": "brute_force_attempt"
+}
 ```
 
-The app runs on `http://localhost:5000` by default.
+### Attack Context Labels
 
-> **Note:** When running locally, logs print to the terminal as structured JSON. Cloud Logging integration is only active when the app is running on the Compute Engine VM with the CloudHoney Service Account attached.
+Each log entry includes an `attack_context` field describing the suspected activity type. This enriches the data for downstream Cloud Functions processing (Issue #8) and Firestore queries (Issue #10).
+
+| Context Label              | Triggered By                                      |
+|----------------------------|---------------------------------------------------|
+| `login_page_visit`         | GET request to `/login`                           |
+| `brute_force_attempt`      | POST request to `/login` (credential submission)  |
+| `transfer_page_visit`      | GET request to `/transfer`                        |
+| `wire_transfer_probe`      | POST request to `/transfer` (financial data)      |
+| `payment_page_visit`       | GET request to `/payment`                         |
+| `payment_api_abuse`        | POST request to `/payment` (card/merchant data)   |
+| `admin_page_visit`         | GET request to `/admin`                           |
+| `admin_exploit_attempt`    | POST request to `/admin` (admin action attempt)   |
+| `account_page_visit`       | GET request to `/account`                         |
+| `account_takeover_recon`   | POST request to `/account` (account ID/SSN)       |
+| `query_page_visit`         | GET request to `/query`                           |
+| `sql_injection_attempt`    | POST request to `/query` (SQL query submission)   |
+| `path_probe`               | Any request to an undefined path (port scanning)  |
 
 ---
 
-## Deployment
+## Deployment to GCP Compute Engine
 
-This application is deployed on a GCP Compute Engine `e2-micro` VM inside a custom VPC Network. See `/infra` for setup scripts and firewall configuration.
+See **Issue #4** in the GitHub Project board for full deployment instructions.  Summary:
 
-- The VM runs with a least-privilege Service Account that allows writes to Cloud Logging
-- Inbound traffic is restricted by VPC firewall rules to expected sources only
-- The app runs persistently via `systemd` and survives reboots
+1. SSH into the VM inside `cloudhoney-vpc`
+2. Clone the repo, install deps
+3. Set environment: `export ENABLE_GCP_LOGGING=true`
+4. Run with gunicorn: `gunicorn -b 0.0.0.0:5000 app:app`
+5. (Better) Configure as a `systemd` service for persistence
+
+---
+
+## Compliance Notes
+
+| Framework          | Requirement | How CloudHoney Addresses It                                         |
+|--------------------|-------------|----------------------------------------------------------------------|
+| PCI DSS Req 3      | No storage of sensitive auth data after authorization | Honeypot never authorizes — payloads are telemetry only |
+| PCI DSS Req 6.4.3  | No credentials in source code | All secrets managed via GCP Secret Manager |
+| GLBA Safeguards    | Monitor access to customer financial information | All access is logged as structured JSON events |

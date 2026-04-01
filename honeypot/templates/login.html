@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Sign In — Pinnacle Federal Bank{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>Online Banking Sign In</h2>
+    <p class="subtitle">Access your accounts securely.</p>
+
+    {% if error %}
+    <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="/login">
+        <div class="form-group">
+            <label for="username">Username or Account Number</label>
+            <input type="text" id="username" name="username" placeholder="Enter your username" autocomplete="off">
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="Enter your password">
+        </div>
+        <button type="submit" class="btn-primary">Sign In</button>
+    </form>
+
+    <div class="secure-badge">
+        <span class="lock">&#x1F512;</span>
+        256-bit SSL Encrypted Connection
+    </div>
+</div>
+{% endblock %}

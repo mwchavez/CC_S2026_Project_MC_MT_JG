@@ -1,0 +1,8 @@
+# CloudHoney Honeypot Dependencies
+
+# Web framework — handles HTTP routing and request/response
+flask==3.1.0
+
+# GCP Cloud Logging — sends structured logs to Cloud Logging service
+# Only used when ENVIRONMENT=production (on the GCP VM)
+google-cloud-logging==3.11.3
