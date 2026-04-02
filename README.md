@@ -15,7 +15,24 @@ CloudHoney lures simulated attack traffic toward decoy banking endpoints, ingest
 
 ---
 
+## 🌐 Cloud Computing Domains Covered
+
+CloudHoney integrates **five** of the seven core cloud computing domains defined in the CIS 4355 curriculum, well above the three-domain minimum.
+
+| Domain | How CloudHoney Addresses It |
+|---|---|
+| **Cloud Architecture & Design** | Custom VPC Network with isolated subnets, deny-all-ingress firewall posture, multi-layer event pipeline designed for separation of concerns, and a six-layer architecture spanning automation through visualization. |
+| **Compute & Containers** | Compute Engine VM hosts the Flask honeypot inside the VPC. Cloud Functions provides serverless event classification. Cloud Run hosts the containerized visualization dashboard with scale-to-zero configuration. |
+| **Storage & Databases** | Cloud Storage provides durable, date-partitioned log retention mirroring PCI DSS audit trail requirements. Firestore serves as the real-time NoSQL event store powering the dashboard. |
+| **Security & Identity** | Cloud IAM enforces least-privilege roles across team members and service accounts. Secret Manager vaults all credentials at runtime. VPC firewall rules restrict inbound traffic to explicitly allow-listed sources. Detection rules are modeled on PCI DSS and GLBA compliance frameworks. |
+| **Operations & Monitoring** | Cloud Logging is the centralized ingestion point for all honeypot events. Cloud Monitoring tracks pipeline health — VM uptime, Cloud Function execution metrics, Pub/Sub throughput, and Firestore read/write rates — with alerting policies for operational anomalies. |
+| **DevOps & Automation** | Cloud Scheduler triggers the traffic simulator on a recurring schedule for hands-free pipeline testing. Pub/Sub provides event-driven messaging between the logging, processing, and alerting layers. GitHub Projects tracks all sprint work with agile issue management. |
+
+---
+
 ## 🏗️ System Architecture
+
+> **Note:** A formal cloud architecture diagram (created in draw.io) showing VPC boundaries, subnets, firewall rules, data flow, and service relationships is available in [`/docs/architecture_diagram.png`](./docs/architecture_diagram.png) and on the [Architecture Wiki page](https://github.com/mwchavez/CC_S2026_Project_MC_MT_JG/wiki/Architecture).
 
 ```
        [Cloud Scheduler]
@@ -59,22 +76,41 @@ CloudHoney lures simulated attack traffic toward decoy banking endpoints, ingest
 
 ---
 
-## ☁️ GCP Services (12)
+## ☁️ GCP Services Inventory (12 Services)
 
-| Role | GCP Service | AWS Equivalent |
-|---|---|---|
-| Honeypot VM hosting | Compute Engine | EC2 |
-| Network isolation & firewall | VPC Network | VPC |
-| Log ingestion | Cloud Logging | CloudWatch Logs |
-| Object storage | Cloud Storage (GCS) | S3 |
-| Serverless processing | Cloud Functions | Lambda |
-| Messaging & alerting | Pub/Sub | SNS |
-| Real-time event database | Firestore | DynamoDB |
-| Credential vault | Secret Manager | Secrets Manager |
-| Dashboard hosting | Cloud Run | App Runner |
-| Monitoring & metrics | Cloud Monitoring | CloudWatch |
-| Access control | Cloud IAM | IAM |
-| Attack automation | Cloud Scheduler | EventBridge Scheduler |
+### Service Table
+
+| # | Role | GCP Service | Model | AWS Equivalent |
+|---|---|---|---|---|
+| 1 | Honeypot VM hosting | Compute Engine | IaaS | EC2 |
+| 2 | Network isolation & firewall | VPC Network | IaaS | VPC |
+| 3 | Log ingestion | Cloud Logging | PaaS | CloudWatch Logs |
+| 4 | Object storage | Cloud Storage (GCS) | IaaS | S3 |
+| 5 | Serverless processing | Cloud Functions | PaaS | Lambda |
+| 6 | Messaging & alerting | Pub/Sub | PaaS | SNS |
+| 7 | Real-time event database | Firestore | PaaS | DynamoDB |
+| 8 | Credential vault | Secret Manager | PaaS | Secrets Manager |
+| 9 | Dashboard hosting | Cloud Run | PaaS | App Runner |
+| 10 | Monitoring & metrics | Cloud Monitoring | PaaS | CloudWatch |
+| 11 | Access control | Cloud IAM | IaaS | IAM |
+| 12 | Attack automation | Cloud Scheduler | PaaS | EventBridge Scheduler |
+
+### Underlying Core Services (PaaS → IaaS Mapping)
+
+Per the CIS 4355 Group Project Kickoff Guide, the following explains which core IaaS services underpin each PaaS service used in CloudHoney. This demonstrates our understanding of the full cloud stack — that every managed service ultimately runs on foundational infrastructure that Google operates on our behalf.
+
+| PaaS Service | Underlying Core IaaS Services |
+|---|---|
+| **Cloud Functions** | Runs on GKE-managed container instances backed by **Compute Engine** VMs. Google provisions, scales, and destroys these containers automatically. Networking is handled through internal **VPC** connectivity. |
+| **Cloud Run** | Runs on **GKE** (Google Kubernetes Engine), which itself uses **Compute Engine** VMs. Incoming traffic is routed through **Cloud Load Balancing** over Google's Andromeda virtual network within a **VPC**. |
+| **Firestore** | A managed NoSQL database built on Google's **Spanner-derived infrastructure**, using **Compute Engine** for processing and Google's **Colossus distributed file system** for storage. Replication and consistency are handled by Google internally. |
+| **Pub/Sub** | A managed messaging service running on Google's globally distributed infrastructure, backed by **Compute Engine** and Google's internal **Borg** orchestration system. Messages are durably stored and replicated across zones. |
+| **Cloud Logging** | A managed log management service running on Google's **Borgmaster-orchestrated infrastructure**, using **Compute Engine** for processing and **Colossus** for durable log storage. |
+| **Cloud Monitoring** | A managed observability service running on Google's **Borgmaster-orchestrated infrastructure**, backed by **Compute Engine** for metric processing and internal time-series databases for storage. |
+| **Cloud Scheduler** | A managed cron service backed by Google's **internal job scheduling system**, running on **Compute Engine** infrastructure. Jobs are durably registered and executed with at-least-once delivery guarantees. |
+| **Secret Manager** | A managed secrets service backed by **Cloud KMS** (Key Management Service) for encryption, running on dedicated **HSM (Hardware Security Module)** infrastructure and **Compute Engine** for API serving. |
+
+> **IaaS services** (Compute Engine, VPC Network, Cloud Storage, Cloud IAM) are themselves the foundational layer and do not require further decomposition.
 
 ---
 
@@ -121,7 +157,8 @@ A containerized web dashboard deployed on **Cloud Run** reads classified event d
 /functions       → Cloud Functions source code
 /dashboard       → Visualization dashboard (Cloud Run)
 /infra           → GCP setup scripts and configurations
-/docs            → Architecture docs and references
+/docs            → Architecture docs, diagrams, and references
+/presentation    → Final presentation slides and demo materials
 ```
 
 ---
@@ -131,7 +168,8 @@ A containerized web dashboard deployed on **Cloud Run** reads classified event d
 - [x] Project proposal completed and approved
 - [x] GitHub repository initialized with milestone structure
 - [x] GitHub Project board with issues across 5 milestones created
-- [x] GCP project, VPC Network, and IAM setup
+- [ ] Cloud architecture diagram (draw.io)
+- [ ] GCP project, VPC Network, and IAM setup
 - [ ] Compute Engine VM provisioned inside VPC
 - [ ] Flask honeypot application deployed (banking endpoints)
 - [ ] Cloud Logging integration
@@ -142,6 +180,7 @@ A containerized web dashboard deployed on **Cloud Run** reads classified event d
 - [ ] Traffic generator v2 (wire transfer probing, payment API abuse, account takeover recon)
 - [ ] Cloud Scheduler automation
 - [ ] Visualization dashboard (Cloud Run)
+- [ ] GCP Services Inventory Wiki page (PaaS/SaaS core service documentation)
 
 ---
 
@@ -164,7 +203,7 @@ A containerized web dashboard deployed on **Cloud Run** reads classified event d
 |---|---|
 | GCP service unfamiliarity | Map GCP services to known AWS equivalents; use GCP free tier and documentation from Week 1 |
 | Financial attack patterns too generic | Reference OWASP Top 10 and FFIEC guidance; refine simulator payloads iteratively |
-| GCP billing overrun | Set billing alerts and budget caps from Day 1; use e2-micro VM and free-tier services |
+| GCP billing overrun | Set billing alerts at $1 and $10; use e2-micro VM and free-tier services; cap Cloud Scheduler to 3 jobs |
 | Cloud Scheduler misconfiguration | Cap frequency to once per hour during development; monitor Cloud Logging volume daily |
 | Team coordination gaps | Weekly check-ins, GitHub Project board, and clear milestone ownership per role |
 | Dashboard complexity underestimated | Build minimum viable version first (Cloud Monitoring); upgrade to custom Cloud Run UI only if time allows |
@@ -176,7 +215,6 @@ A containerized web dashboard deployed on **Cloud Run** reads classified event d
 - [Project Wiki](https://github.com/mwchavez/CC_S2026_Project_MC_MT_JG/wiki) — Full technical report, architecture decisions, and results
 - [GitHub Project Board](https://github.com/users/mwchavez/projects/7) — Milestone tracking and task assignments
 - [CloudHoney Proposal](./docs/CloudHoney_Proposal.md) — Full project proposal document
-- [Companion Project: Leak Detection System](https://github.com/mwchavez/cc-practicum_S2026) — AWS-based IoT pipeline (CSEC 4390)
 
 ---
 
