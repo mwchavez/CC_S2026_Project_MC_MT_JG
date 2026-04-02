@@ -1,8 +1,11 @@
-# CloudHoney Honeypot Dependencies
+# CloudHoney — Honeypot Application Dependencies
+# ================================================
+# Install:  pip install -r requirements.txt
+#
+# NOTE: google-cloud-logging is only required when deploying to GCP.
+#       For local development you can skip it — the app falls back to
+#       stdout logging automatically when ENABLE_GCP_LOGGING is not set.
 
-# Web framework — handles HTTP routing and request/response
 flask==3.1.0
-
-# GCP Cloud Logging — sends structured logs to Cloud Logging service
-# Only used when ENVIRONMENT=production (on the GCP VM)
+gunicorn==23.0.0
 google-cloud-logging==3.11.3

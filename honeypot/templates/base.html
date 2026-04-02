@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Pinnacle Federal Bank — Online Banking{% endblock %}</title>
+    <style>
+        /* ----------------------------------------------------------------
+           CloudHoney — Decoy Bank Portal Styles
+           ----------------------------------------------------------------
+           This is a FAKE financial institution portal used for honeypot
+           telemetry.  No real banking operations are performed.
+           ---------------------------------------------------------------- */
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            color: #1a1a2e;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Header / Nav Bar --- */
+        .bank-header {
+            background: linear-gradient(135deg, #0a1628 0%, #1a2744 100%);
+            color: #ffffff;
+            padding: 14px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .bank-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .bank-logo .shield {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            background: #2e86de;
+            border-radius: 6px;
+            font-size: 18px;
+        }
+
+        .bank-nav {
+            display: flex;
+            gap: 22px;
+            font-size: 13px;
+        }
+
+        .bank-nav a {
+            color: #b0c4de;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .bank-nav a:hover { color: #ffffff; }
+
+        /* --- Main Content --- */
+        .main-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            padding: 36px 40px;
+            width: 100%;
+            max-width: 440px;
+        }
+
+        .card h2 {
+            font-size: 22px;
+            margin-bottom: 6px;
+            color: #0a1628;
+        }
+
+        .card .subtitle {
+            font-size: 13px;
+            color: #6b7c93;
+            margin-bottom: 28px;
+        }
+
+        /* --- Form Elements --- */
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #3d4f6f;
+            margin-bottom: 6px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            font-size: 14px;
+            border: 1px solid #d1d9e6;
+            border-radius: 8px;
+            background: #f8f9fb;
+            color: #1a1a2e;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #2e86de;
+            box-shadow: 0 0 0 3px rgba(46, 134, 222, 0.12);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #ffffff;
+            background: linear-gradient(135deg, #2e86de, #1a6fbf);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            margin-top: 6px;
+        }
+
+        .btn-primary:hover { opacity: 0.9; }
+
+        /* --- Error / Success Messages --- */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        .alert-error {
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+        }
+
+        .alert-success {
+            background: #f0fdf4;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        .alert-info {
+            background: #eff6ff;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+        }
+
+        /* --- Footer --- */
+        .bank-footer {
+            text-align: center;
+            padding: 16px;
+            font-size: 11px;
+            color: #8896a6;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        /* --- Misc --- */
+        .secure-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: #6b7c93;
+            margin-top: 16px;
+            justify-content: center;
+        }
+
+        .secure-badge .lock { color: #22c55e; }
+    </style>
+</head>
+<body>
+    <header class="bank-header">
+        <div class="bank-logo">
+            <span class="shield">&#x1F6E1;</span>
+            Pinnacle Federal Bank
+        </div>
+        <nav class="bank-nav">
+            <a href="/login">Sign In</a>
+            <a href="/account">Accounts</a>
+            <a href="/transfer">Transfers</a>
+            <a href="/payment">Payments</a>
+            <a href="/admin">Admin</a>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="bank-footer">
+        &copy; 2026 Pinnacle Federal Bank &mdash; Member FDIC &mdash; Equal Housing Lender
+        &nbsp;|&nbsp; <a href="#" style="color:#8896a6;">Privacy Policy</a>
+        &nbsp;|&nbsp; <a href="#" style="color:#8896a6;">Terms of Service</a>
+    </footer>
+</body>
+</html>

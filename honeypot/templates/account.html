@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Account Lookup — Pinnacle Federal Bank{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>Account Lookup</h2>
+    <p class="subtitle">Retrieve account details by account number or SSN.</p>
+
+    {% if error %}
+    <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="/account">
+        <div class="form-group">
+            <label for="account_id">Account Number</label>
+            <input type="text" id="account_id" name="account_id" placeholder="10-digit account number">
+        </div>
+        <div class="form-group">
+            <label for="ssn_last4">Last 4 of SSN (verification)</label>
+            <input type="text" id="ssn_last4" name="ssn_last4" placeholder="XXXX" maxlength="4" autocomplete="off">
+        </div>
+        <div class="form-group">
+            <label for="dob">Date of Birth</label>
+            <input type="date" id="dob" name="dob">
+        </div>
+        <button type="submit" class="btn-primary">Look Up Account</button>
+    </form>
+
+    <div class="secure-badge">
+        <span class="lock">&#x1F512;</span>
+        Account data is protected under GLBA Safeguards Rule.
+    </div>
+</div>
+{% endblock %}

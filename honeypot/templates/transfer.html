@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Wire Transfer — Pinnacle Federal Bank{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>Wire Transfer</h2>
+    <p class="subtitle">Send funds to a domestic or international account.</p>
+
+    {% if message %}
+    <div class="alert alert-success">{{ message }}</div>
+    {% endif %}
+
+    <form method="POST" action="/transfer">
+        <div class="form-group">
+            <label for="from_account">From Account</label>
+            <input type="text" id="from_account" name="from_account" placeholder="Your account number">
+        </div>
+        <div class="form-group">
+            <label for="to_account">Beneficiary Account Number</label>
+            <input type="text" id="to_account" name="to_account" placeholder="Recipient account number">
+        </div>
+        <div class="form-group">
+            <label for="routing_number">Routing / ABA Number</label>
+            <input type="text" id="routing_number" name="routing_number" placeholder="9-digit routing number">
+        </div>
+        <div class="form-group">
+            <label for="amount">Amount (USD)</label>
+            <input type="text" id="amount" name="amount" placeholder="0.00">
+        </div>
+        <div class="form-group">
+            <label for="memo">Memo / Reference</label>
+            <input type="text" id="memo" name="memo" placeholder="Optional reference">
+        </div>
+        <button type="submit" class="btn-primary">Submit Transfer</button>
+    </form>
+
+    <div class="secure-badge">
+        <span class="lock">&#x1F512;</span>
+        Wire transfers are reviewed and subject to verification.
+    </div>
+</div>
+{% endblock %}
