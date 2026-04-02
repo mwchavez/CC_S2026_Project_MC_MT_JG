@@ -15,6 +15,21 @@ CloudHoney lures simulated attack traffic toward decoy banking endpoints, ingest
 
 ---
 
+## 👥 Team Roles & Responsibilities
+
+Per the CIS 4355 Kickoff Guide, each team member leads a distinct area while contributing across all aspects of the project. Roles are mapped to the Guide's recommended structure: Project Lead / Cloud Architect, Developer / Engineer, and Security & Documentation Lead.
+
+**Moses — Project Leader / Cloud Architect**
+Owns the overall system architecture and all GCP infrastructure decisions. Responsible for GCP project setup, VPC and IAM configuration, Compute Engine VM provisioning, Cloud Functions implementation, Pub/Sub alert pipeline, Firestore integration, Secret Manager configuration, Cloud Scheduler automation, Cloud Monitoring setup, and final system integration. Primary point of contact for all technical decisions, demo preparation, and instructor communication. Manages the GitHub Project board, tracks sprint progress, and ensures milestone deadlines are met.
+
+**Marissa Turner — Developer / Cloud Engineer**
+Owns all application-layer code across the project. Responsible for the Flask honeypot application with financial sector decoy endpoints, the full Python traffic simulator (all five attack scenarios: credential stuffing, wire transfer probing, payment API abuse, account takeover recon, and port scanning), and collaboration on the Cloud Run visualization dashboard. Works with the Project Leader on integration testing, troubleshooting, deployment, and live demo execution.
+
+**Juliana Garza — Scribe / Security & Documentation Lead**
+Owns the project's written deliverables and security documentation. Responsible for authoring and maintaining the GitHub Wiki as the formal project report, including the GCP Services Inventory page with PaaS/SaaS core service explanations. Leads research on financial sector threat patterns, PCI DSS and GLBA compliance requirements, and honeypot methodologies. Documents and reviews all security configurations — firewall rule justifications, IAM role decisions, Secret Manager access policies, and VPC isolation rationale — ensuring each decision is mapped to relevant compliance frameworks in the Wiki. Maintains meeting notes, the Implementation Log, and ensures all GitHub Issues are properly described and closed.
+
+---
+
 ## 🌐 Cloud Computing Domains Covered
 
 CloudHoney integrates **five** of the seven core cloud computing domains defined in the CIS 4355 curriculum, well above the three-domain minimum.
@@ -169,7 +184,7 @@ A containerized web dashboard deployed on **Cloud Run** reads classified event d
 - [x] GitHub repository initialized with milestone structure
 - [x] GitHub Project board with issues across 5 milestones created
 - [ ] Cloud architecture diagram (draw.io)
-- [ ] GCP project, VPC Network, and IAM setup
+- [x] GCP project, VPC Network, and IAM setup
 - [ ] Compute Engine VM provisioned inside VPC
 - [ ] Flask honeypot application deployed (banking endpoints)
 - [ ] Cloud Logging integration
