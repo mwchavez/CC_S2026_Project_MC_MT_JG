@@ -185,8 +185,8 @@ A containerized web dashboard deployed on **Cloud Run** reads classified event d
 - [x] GitHub Project board with issues across 5 milestones created
 - [ ] Cloud architecture diagram (draw.io)
 - [x] GCP project, VPC Network, and IAM setup
-- [ ] Compute Engine VM provisioned inside VPC
-- [ ] Flask honeypot application deployed (banking endpoints)
+- [x] Compute Engine VM provisioned inside VPC
+- [x] Flask honeypot application deployed (banking endpoints)
 - [ ] Cloud Logging integration
 - [ ] Cloud Storage pipeline configured
 - [ ] Traffic generator v1 (port scan + credential stuffing)
