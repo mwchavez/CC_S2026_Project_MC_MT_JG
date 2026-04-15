@@ -187,12 +187,12 @@ A containerized web dashboard deployed on **Cloud Run** reads classified event d
 - [x] GCP project, VPC Network, and IAM setup
 - [x] Compute Engine VM provisioned inside VPC
 - [x] Flask honeypot application deployed (banking endpoints)
-- [ ] Cloud Logging integration
-- [ ] Cloud Storage pipeline configured
-- [ ] Traffic generator v1 (port scan + credential stuffing)
+- [x] Cloud Logging integration
+- [x] Cloud Storage pipeline configured
+- [x] Traffic generator v1 (port scan + credential stuffing)
 - [ ] Cloud Functions processing logic + Firestore integration
 - [ ] Pub/Sub alert pipeline + Secret Manager setup
-- [ ] Traffic generator v2 (wire transfer probing, payment API abuse, account takeover recon)
+- [x] Traffic generator v2 (wire transfer probing, payment API abuse, account takeover recon)
 - [ ] Cloud Scheduler automation
 - [ ] Visualization dashboard (Cloud Run)
 - [ ] GCP Services Inventory Wiki page (PaaS/SaaS core service documentation)
