@@ -5,7 +5,7 @@
 
 ---
 
-## 📌 Project Overview
+## Project Overview
 
 **CloudHoney** is a cloud-native honeypot and security event monitoring platform deployed on **Google Cloud Platform (GCP)**, purpose-built to simulate a financial institution's internet-facing infrastructure. Financial institutions experience up to 300 times more cyberattacks than organizations in other sectors — making them the ideal context for a realistic, high-stakes security pipeline.
 
@@ -15,7 +15,7 @@ CloudHoney lures simulated attack traffic toward decoy banking endpoints, ingest
 
 ---
 
-## 👥 Team Roles & Responsibilities
+## Team Roles & Responsibilities
 
 Per the CIS 4355 Kickoff Guide, each team member leads a distinct area while contributing across all aspects of the project. Roles are mapped to the Guide's recommended structure: Project Lead / Cloud Architect, Developer / Engineer, and Security & Documentation Lead.
 
@@ -30,7 +30,7 @@ Owns the project's written deliverables and security documentation. Responsible 
 
 ---
 
-## 🌐 Cloud Computing Domains Covered
+## Cloud Computing Domains Covered
 
 CloudHoney integrates **five** of the seven core cloud computing domains defined in the CIS 4355 curriculum, well above the three-domain minimum.
 
@@ -45,7 +45,7 @@ CloudHoney integrates **five** of the seven core cloud computing domains defined
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 > **Note:** A formal cloud architecture diagram (created in draw.io) showing VPC boundaries, subnets, firewall rules, data flow, and service relationships is available in [`/docs/architecture_diagram.png`](./docs/architecture_diagram.png) and on the [Architecture Wiki page](https://github.com/mwchavez/CC_S2026_Project_MC_MT_JG/wiki/Architecture).
 
@@ -91,7 +91,7 @@ CloudHoney integrates **five** of the seven core cloud computing domains defined
 
 ---
 
-## ☁️ GCP Services Inventory (12 Services)
+## GCP Services Inventory (12 Services)
 
 ### Service Table
 
@@ -129,7 +129,7 @@ Per the CIS 4355 Group Project Kickoff Guide, the following explains which core 
 
 ---
 
-## 🧱 System Layers Explained
+## System Layers Explained
 
 CloudHoney is organized into five logical layers. Each layer handles one responsibility and passes its output to the next.
 
@@ -150,7 +150,7 @@ A containerized web dashboard deployed on **Cloud Run** reads classified event d
 
 ---
 
-## 🎯 Detection Rules
+## Detection Rules
 
 | Rule | Condition | Alert Level |
 |---|---|---|
@@ -164,7 +164,7 @@ A containerized web dashboard deployed on **Cloud Run** reads classified event d
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```
 /honeypot        → Flask honeypot application (banking decoy endpoints)
@@ -178,7 +178,7 @@ A containerized web dashboard deployed on **Cloud Run** reads classified event d
 
 ---
 
-## ✅ Current Progress
+## Current Progress
 
 - [x] Project proposal completed and approved
 - [x] GitHub repository initialized with milestone structure
@@ -199,7 +199,7 @@ A containerized web dashboard deployed on **Cloud Run** reads classified event d
 
 ---
 
-## 📊 Evaluation Metrics
+## Evaluation Metrics
 
 | Metric | Target |
 |---|---|
@@ -212,7 +212,7 @@ A containerized web dashboard deployed on **Cloud Run** reads classified event d
 
 ---
 
-## ⚠️ Risks & Mitigations
+## Risks & Mitigations
 
 | Risk | Mitigation |
 |---|---|
@@ -225,7 +225,7 @@ A containerized web dashboard deployed on **Cloud Run** reads classified event d
 
 ---
 
-## 🔗 Related Resources
+## Related Resources
 
 - [Project Wiki](https://github.com/mwchavez/CC_S2026_Project_MC_MT_JG/wiki) — Full technical report, architecture decisions, and results
 - [GitHub Project Board](https://github.com/users/mwchavez/projects/7) — Milestone tracking and task assignments
