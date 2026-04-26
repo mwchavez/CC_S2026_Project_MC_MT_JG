@@ -1,0 +1,187 @@
+{
+  "displayName": "CloudHoney — Pipeline Health (Issue #11)",
+  "mosaicLayout": {
+    "columns": 12,
+    "tiles": [
+      {
+        "xPos": 0, "yPos": 0, "width": 6, "height": 4,
+        "widget": {
+          "title": "VM CPU Utilization — honeypot-vm",
+          "xyChart": {
+            "dataSets": [{
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"compute.googleapis.com/instance/cpu/utilization\" resource.type=\"gce_instance\"",
+                  "aggregation": {
+                    "alignmentPeriod": "60s",
+                    "perSeriesAligner": "ALIGN_MEAN"
+                  }
+                }
+              },
+              "plotType": "LINE",
+              "legendTemplate": "CPU %"
+            }],
+            "yAxis": {"label": "Utilization", "scale": "LINEAR"},
+            "timeshiftDuration": "0s"
+          }
+        }
+      },
+      {
+        "xPos": 6, "yPos": 0, "width": 6, "height": 4,
+        "widget": {
+          "title": "VM Memory Utilization — honeypot-vm (Ops Agent)",
+          "xyChart": {
+            "dataSets": [{
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"agent.googleapis.com/memory/percent_used\" resource.type=\"gce_instance\" metric.label.\"state\"=\"used\"",
+                  "aggregation": {
+                    "alignmentPeriod": "60s",
+                    "perSeriesAligner": "ALIGN_MEAN"
+                  }
+                }
+              },
+              "plotType": "LINE",
+              "legendTemplate": "Memory %"
+            }],
+            "yAxis": {"label": "% Used", "scale": "LINEAR"}
+          }
+        }
+      },
+      {
+        "xPos": 0, "yPos": 4, "width": 6, "height": 4,
+        "widget": {
+          "title": "Cloud Function Invocations (by function)",
+          "xyChart": {
+            "dataSets": [{
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"cloudfunctions.googleapis.com/function/execution_count\" resource.type=\"cloud_function\"",
+                  "aggregation": {
+                    "alignmentPeriod": "60s",
+                    "perSeriesAligner": "ALIGN_RATE",
+                    "crossSeriesReducer": "REDUCE_SUM",
+                    "groupByFields": ["resource.label.\"function_name\""]
+                  }
+                }
+              },
+              "plotType": "STACKED_AREA"
+            }],
+            "yAxis": {"label": "Invocations/sec", "scale": "LINEAR"}
+          }
+        }
+      },
+      {
+        "xPos": 6, "yPos": 4, "width": 6, "height": 4,
+        "widget": {
+          "title": "Cloud Function Execution Time (p95)",
+          "xyChart": {
+            "dataSets": [{
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"cloudfunctions.googleapis.com/function/execution_times\" resource.type=\"cloud_function\"",
+                  "aggregation": {
+                    "alignmentPeriod": "60s",
+                    "perSeriesAligner": "ALIGN_PERCENTILE_95",
+                    "crossSeriesReducer": "REDUCE_MEAN",
+                    "groupByFields": ["resource.label.\"function_name\""]
+                  }
+                }
+              },
+              "plotType": "LINE"
+            }],
+            "yAxis": {"label": "Latency (ns)", "scale": "LINEAR"}
+          }
+        }
+      },
+      {
+        "xPos": 0, "yPos": 8, "width": 6, "height": 4,
+        "widget": {
+          "title": "Pub/Sub Publish Rate (by topic)",
+          "xyChart": {
+            "dataSets": [{
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"pubsub.googleapis.com/topic/send_message_operation_count\" resource.type=\"pubsub_topic\"",
+                  "aggregation": {
+                    "alignmentPeriod": "60s",
+                    "perSeriesAligner": "ALIGN_RATE",
+                    "crossSeriesReducer": "REDUCE_SUM",
+                    "groupByFields": ["resource.label.\"topic_id\""]
+                  }
+                }
+              },
+              "plotType": "LINE"
+            }],
+            "yAxis": {"label": "Messages/sec", "scale": "LINEAR"}
+          }
+        }
+      },
+      {
+        "xPos": 6, "yPos": 8, "width": 6, "height": 4,
+        "widget": {
+          "title": "Pub/Sub Subscription Backlog (undelivered messages)",
+          "xyChart": {
+            "dataSets": [{
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"pubsub.googleapis.com/subscription/num_undelivered_messages\" resource.type=\"pubsub_subscription\"",
+                  "aggregation": {
+                    "alignmentPeriod": "60s",
+                    "perSeriesAligner": "ALIGN_MEAN",
+                    "crossSeriesReducer": "REDUCE_SUM",
+                    "groupByFields": ["resource.label.\"subscription_id\""]
+                  }
+                }
+              },
+              "plotType": "LINE"
+            }],
+            "yAxis": {"label": "Undelivered", "scale": "LINEAR"}
+          }
+        }
+      },
+      {
+        "xPos": 0, "yPos": 12, "width": 6, "height": 4,
+        "widget": {
+          "title": "Firestore Document Reads",
+          "xyChart": {
+            "dataSets": [{
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"firestore.googleapis.com/document/read_count\" resource.type=\"firestore.googleapis.com/Database\"",
+                  "aggregation": {
+                    "alignmentPeriod": "60s",
+                    "perSeriesAligner": "ALIGN_RATE"
+                  }
+                }
+              },
+              "plotType": "LINE"
+            }],
+            "yAxis": {"label": "Reads/sec", "scale": "LINEAR"}
+          }
+        }
+      },
+      {
+        "xPos": 6, "yPos": 12, "width": 6, "height": 4,
+        "widget": {
+          "title": "Firestore Document Writes",
+          "xyChart": {
+            "dataSets": [{
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"firestore.googleapis.com/document/write_count\" resource.type=\"firestore.googleapis.com/Database\"",
+                  "aggregation": {
+                    "alignmentPeriod": "60s",
+                    "perSeriesAligner": "ALIGN_RATE"
+                  }
+                }
+              },
+              "plotType": "LINE"
+            }],
+            "yAxis": {"label": "Writes/sec", "scale": "LINEAR"}
+          }
+        }
+      }
+    ]
+  }
+}
