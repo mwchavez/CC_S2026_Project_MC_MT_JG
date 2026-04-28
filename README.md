@@ -190,11 +190,11 @@ A containerized web dashboard deployed on **Cloud Run** reads classified event d
 - [x] Cloud Logging integration
 - [x] Cloud Storage pipeline configured
 - [x] Traffic generator v1 (port scan + credential stuffing)
-- [ ] Cloud Functions processing logic + Firestore integration
-- [ ] Pub/Sub alert pipeline + Secret Manager setup
+- [x] Cloud Functions processing logic + Firestore integration
+- [x] Pub/Sub alert pipeline + Secret Manager setup
 - [x] Traffic generator v2 (wire transfer probing, payment API abuse, account takeover recon)
-- [ ] Cloud Scheduler automation
-- [ ] Visualization dashboard (Cloud Run)
+- [x] Cloud Scheduler automation
+- [x] Visualization dashboard (Cloud Run)
 - [ ] GCP Services Inventory Wiki page (PaaS/SaaS core service documentation)
 
 ---
