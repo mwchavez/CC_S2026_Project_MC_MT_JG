@@ -183,7 +183,7 @@ A containerized web dashboard deployed on **Cloud Run** reads classified event d
 - [x] Project proposal completed and approved
 - [x] GitHub repository initialized with milestone structure
 - [x] GitHub Project board with issues across 5 milestones created
-- [ ] Cloud architecture diagram (draw.io)
+- [x] Cloud architecture diagram (draw.io)
 - [x] GCP project, VPC Network, and IAM setup
 - [x] Compute Engine VM provisioned inside VPC
 - [x] Flask honeypot application deployed (banking endpoints)
@@ -195,7 +195,7 @@ A containerized web dashboard deployed on **Cloud Run** reads classified event d
 - [x] Traffic generator v2 (wire transfer probing, payment API abuse, account takeover recon)
 - [x] Cloud Scheduler automation
 - [x] Visualization dashboard (Cloud Run)
-- [ ] GCP Services Inventory Wiki page (PaaS/SaaS core service documentation)
+- [x] GCP Services Inventory Wiki page (PaaS/SaaS core service documentation)
 
 ---
 
